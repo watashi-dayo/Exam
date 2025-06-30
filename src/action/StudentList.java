@@ -80,6 +80,7 @@ public class StudentList extends HttpServlet {
         if ("1".equals(isAttend)) {
           sql.append(" AND is_attend = TRUE");
         }
+        sql.append(" ORDER BY no");
 
         try (PreparedStatement st = con.prepareStatement(sql.toString())) {
           int index = 1;

@@ -34,7 +34,7 @@
 
   <!-- 新規登録 -->
   <div style="margin-top: 10px;">
-    <a href="studentinsert.jsp">新規登録</a>
+    <a href="<%= request.getContextPath() %>/disp/studentinsertform">新規登録</a>
   </div>
 
   <!-- 件数表示 -->
@@ -67,7 +67,7 @@
               <c:otherwise>×</c:otherwise>
             </c:choose>
           </td>
-          <td><a href="studentupdateform?student_id=${student.no}">変更</a></td>
+          <td><a href="<%= request.getContextPath() %>/disp/studentupdateform?no=${student.no}">変更</a></td>
         </tr>
       </c:forEach>
       <c:if test="${empty students}">
