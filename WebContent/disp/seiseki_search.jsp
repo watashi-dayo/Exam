@@ -53,7 +53,8 @@
   <h3>学生情報</h3>
     <label>学生番号</label>
     <input type="text" name="student_no" maxlength="10" placeholder="学生番号を入力してください" required/>
-    <br/>
+    <br>
+    <br>
     <button type="submit">検索</button>
   </form>
 </div>
