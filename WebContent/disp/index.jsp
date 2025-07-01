@@ -11,7 +11,7 @@
 
     <ul class="card student">
       <li style="margin-bottom: 15px;">
-        <a href="<%= request.getContextPath() %>//studentlist">学生管理</a>
+        <a href="<%= request.getContextPath() %>/action/studentlist">学生管理</a>
       </li>
     </ul>
     <ul class="card score">
@@ -20,7 +20,7 @@
         <a href="<%= request.getContextPath() %>/seiseki/seiseki_insert.jsp">成績登録</a>
       </li>
       <li style="margin-bottom: 15px;">
-        <a href="<%= request.getContextPath() %>/disp/seiseki_search.jsp">成績参照</a>
+        <a href="<%= request.getContextPath() %>/action/seisekisearch">成績参照</a>
       </li>
     </ul>
     <ul class="card subject">

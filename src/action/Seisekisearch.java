@@ -1,67 +1,87 @@
 package action;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
-@WebServlet("/Seisekisearch")
+import bean.Teacher;
+import dao.DAO;
+
+@WebServlet("/action/seisekisearch")
 public class Seisekisearch extends HttpServlet {
-    private static final long serialVersionUID = 1L;
 
-    public Seisekisearch() {
-        super();
+  @Override
+  protected void doGet(HttpServletRequest request, HttpServletResponse response)
+      throws ServletException, IOException {
+
+    request.setCharacterEncoding("UTF-8");
+    HttpSession session = request.getSession();
+    Teacher teacher = (Teacher) session.getAttribute("teacher");
+    if (teacher == null) {
+      response.sendRedirect("../login.jsp");
+      return;
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    String schoolCd = teacher.getSchool_cd();
+    List<Integer> entYears = new ArrayList<>();
+    List<String> classNums = new ArrayList<>();
+    List<String> subjectNames = new ArrayList<>();
 
-        request.setCharacterEncoding("UTF-8");
+    try {
+      DAO dao = new DAO();
+      try (Connection con = dao.getConnection()) {
 
-        String nyugaku = request.getParameter("f1");
-        String className = request.getParameter("f2");
-        String kamoku = request.getParameter("f3");
-        String gakuseiNo = request.getParameter("f4");
-
-        List<String> results = new ArrayList<>();
-
-        // 科目コードを日本語に変換
-        String kamokuName = "";
-        if (kamoku != null) {
-            switch (kamoku) {
-                case "math":
-                    kamokuName = "数学";
-                    break;
-                case "english":
-                    kamokuName = "英語";
-                    break;
-                case "science":
-                    kamokuName = "理科";
-                    break;
-                default:
-                    kamokuName = "不明";
+        // 入学年度
+        try (PreparedStatement st = con.prepareStatement(
+            "SELECT DISTINCT ent_year FROM STUDENT WHERE school_cd = ? ORDER BY ent_year")) {
+          st.setString(1, schoolCd);
+          try (ResultSet rs = st.executeQuery()) {
+            while (rs.next()) {
+              entYears.add(rs.getInt("ent_year"));
             }
+          }
         }
 
-        if (gakuseiNo != null && !gakuseiNo.isEmpty()) {
-            results.add("学生番号: " + gakuseiNo + " の成績：90点");
-        } else if (nyugaku != null && className != null && kamoku != null &&
-                   !nyugaku.isEmpty() && !className.isEmpty() && !kamoku.isEmpty()) {
-            results.add("科目: " + kamokuName + " / クラス: " + className + " / 年度: " + nyugaku + " の平均成績：85点");
-        } else {
-            results.add("検索条件を入力してください。");
+        // クラス
+        try (PreparedStatement st = con.prepareStatement(
+            "SELECT DISTINCT class_num FROM STUDENT WHERE school_cd = ? ORDER BY class_num")) {
+          st.setString(1, schoolCd);
+          try (ResultSet rs = st.executeQuery()) {
+            while (rs.next()) {
+              classNums.add(rs.getString("class_num"));
+            }
+          }
         }
 
-        request.setAttribute("results", results);
-
-        // 新しい JSP ファイルへフォワード
-        RequestDispatcher dispatcher = request.getRequestDispatcher("/disp/seiseki_result.jsp");
-        dispatcher.forward(request, response);
+        // 科目
+        try (PreparedStatement st = con.prepareStatement(
+            "SELECT DISTINCT name FROM SUBJECT WHERE school_cd = ? ORDER BY name")) {
+          st.setString(1, schoolCd);
+          try (ResultSet rs = st.executeQuery()) {
+            while (rs.next()) {
+              subjectNames.add(rs.getString("name"));
+            }
+          }
+        }
+      }
+    } catch (Exception e) {
+      throw new ServletException(e);
     }
+
+    request.setAttribute("entYears", entYears);
+    request.setAttribute("classNums", classNums);
+    request.setAttribute("subjects", subjectNames);
+
+    request.getRequestDispatcher("/disp/seiseki_search.jsp").forward(request, response);
+  }
 }
